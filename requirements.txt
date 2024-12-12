@@ -1,7 +1,5 @@
-streamlit 
-alpha_vantage 
-matplotlib
-numpy
-pandas
+streamlit
 plotly
-ta-lib
+alpha_vantage
+pandas
+pandas_ta  # Alternative to TA-Lib if you want to avoid the compilation issue
