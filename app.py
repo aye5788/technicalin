@@ -1,9 +1,9 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
+import plotly.graph_objects as go
 from alpha_vantage.timeseries import TimeSeries
-from alpha_vantage.techindicators import TechIndicators
+import talib
 
 # Alpha Vantage API key
 API_KEY = 'CLP9IN76G4S8OUXN'
@@ -14,28 +14,49 @@ def fetch_data(symbol, interval='1min'):
     data, meta_data = ts.get_intraday(symbol=symbol, interval=interval, outputsize='full')
     return data
 
-# Function to calculate and plot technical indicators (e.g., SMA, RSI)
+# Function to calculate and plot technical indicators (e.g., SMA, RSI, MACD)
 def plot_technical_analysis(data, symbol):
-    fig, ax = plt.subplots(figsize=(10,6))
+    # Plot candlestick chart
+    fig = go.Figure(data=[go.Candlestick(
+        x=data.index,
+        open=data['1. open'],
+        high=data['2. high'],
+        low=data['3. low'],
+        close=data['4. close'],
+        name='Candlesticks'
+    )])
+
+    # Add Moving Average (SMA)
+    sma = talib.SMA(data['4. close'], timeperiod=14)
+    fig.add_trace(go.Scatter(x=data.index, y=sma, mode='lines', name='SMA 14'))
+
+    # Add RSI
+    rsi = talib.RSI(data['4. close'], timeperiod=14)
+    fig.add_trace(go.Scatter(x=data.index, y=rsi, mode='lines', name='RSI'))
+
+    # Display the chart
+    st.plotly_chart(fig)
+
+    # Display Textual Interpretation
+    last_price = data['4. close'][-1]
+    sma_last = sma[-1]
+    rsi_last = rsi[-1]
+
+    interpretation = f"**Latest Price:** {last_price:.2f}\n\n"
     
-    # Plotting the price data
-    ax.plot(data['close'], label='Close Price', color='blue')
+    if last_price > sma_last:
+        interpretation += "Price is above the SMA 14, indicating a bullish trend.\n"
+    else:
+        interpretation += "Price is below the SMA 14, indicating a bearish trend.\n"
     
-    # Simple Moving Average (SMA)
-    ax.plot(data['close'].rolling(window=14).mean(), label='SMA 14', color='red')
+    if rsi_last > 70:
+        interpretation += "RSI is above 70, indicating the stock may be overbought.\n"
+    elif rsi_last < 30:
+        interpretation += "RSI is below 30, indicating the stock may be oversold.\n"
+    else:
+        interpretation += "RSI is within a neutral range.\n"
     
-    # Relative Strength Index (RSI)
-    ax2 = ax.twinx()
-    rsi = 100 - (100 / (1 + (data['close'].diff().clip(lower=0).rolling(window=14).mean() /
-                             data['close'].diff().clip(upper=0).abs().rolling(window=14).mean())))
-    ax2.plot(rsi, label='RSI', color='green')
-    ax2.axhline(70, linestyle='--', color='red')
-    ax2.axhline(30, linestyle='--', color='green')
-    
-    ax.legend(loc='upper left')
-    ax2.legend(loc='upper right')
-    ax.set_title(f"Technical Analysis for {symbol}")
-    st.pyplot(fig)
+    st.text_area("Technical Analysis Interpretation", interpretation, height=300)
 
 # Streamlit UI for user input
 st.title("Stock Technical Analysis Dashboard")
@@ -46,6 +67,4 @@ timeframe = st.selectbox("Select Timeframe", ['1min', '2min', '5min', '1hour', '
 if ticker:
     st.write(f"Fetching data for {ticker} with {timeframe} interval...")
     data = fetch_data(ticker, interval=timeframe)
-    st.write(f"Data for {ticker}:")
-    st.write(data.tail())
     plot_technical_analysis(data, ticker)
