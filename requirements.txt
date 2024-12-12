@@ -1,0 +1,5 @@
+streamlit 
+alpha_vantage 
+matplotlib
+numpy
+pandas
