@@ -3,3 +3,5 @@ alpha_vantage
 matplotlib
 numpy
 pandas
+plotly
+talib
