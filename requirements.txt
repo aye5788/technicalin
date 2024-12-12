@@ -4,3 +4,4 @@ alpha_vantage
 pandas
 pandas_ta  # Alternative to TA-Lib if you want to avoid the compilation issue
 setuptools
+numpy
