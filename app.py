@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import plotly.graph_objects as go
 from alpha_vantage.timeseries import TimeSeries
-import talib
+import pandas_ta as ta
 
 # Alpha Vantage API key
 API_KEY = 'CLP9IN76G4S8OUXN'
@@ -27,11 +27,11 @@ def plot_technical_analysis(data, symbol):
     )])
 
     # Add Moving Average (SMA)
-    sma = talib.SMA(data['4. close'], timeperiod=14)
+    sma = ta.sma(data['4. close'], 14)
     fig.add_trace(go.Scatter(x=data.index, y=sma, mode='lines', name='SMA 14'))
 
     # Add RSI
-    rsi = talib.RSI(data['4. close'], timeperiod=14)
+    rsi = ta.rsi(data['4. close'], 14)
     fig.add_trace(go.Scatter(x=data.index, y=rsi, mode='lines', name='RSI'))
 
     # Display the chart
